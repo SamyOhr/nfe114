@@ -13,5 +13,5 @@ jobs:
       with:
         server: files.000webhost.com
         username: lesitedesamy
-        password: Fh&gAmJ6B@@qe1%qXFI5
+        password: Fh&gAmJ6B@@qe1%qXF!5
         server-dir : ./public_html/ 
