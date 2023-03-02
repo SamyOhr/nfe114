@@ -1,55 +1,65 @@
 <html>
 <head>
-<script src="https://openlayers.org/api/OpenLayers.js"></script>
-<script>
-function envoyer(){
-    //Récupération des valeurs saisies par l'utilisateur
-	var rue = document.getElementById('rue').value;
-    var ville = document.getElementById('code').value;
-    
-	//API issu de https://adresse.data.gouv.fr/api-doc/adresse
-	
-	//Création de l'object Ajax
-	var req= new XMLHttpRequest();
-    //Préparation de requête
-	req.open("GET","https://api-adresse.data.gouv.fr/search/?q="+rue+"&postcode="+ville,false); 
-    //Envoi de l'information au serveur
-	req.send(null); 
-    //Réception et affichage du résultat
-	var geocodeObjet = JSON.parse(req.responseText);
-    
-    //Récupération des coordonnées GPS de l'adresse
-    var long = geocodeObjet.features[0].geometry.coordinates[0];
-    var lat = geocodeObjet.features[0].geometry.coordinates[1];
-
-    //Initialisation de la carte et du POI de départ
-    map = new OpenLayers.Map("mapdiv");
-    map.addLayer(new OpenLayers.Layer.OSM());
-
-    var pois = new OpenLayers.Layer.Text("My Points", {
-        location: "./POIexo6.php",
-        projection: map.displayProjection,
-    });
-    map.addLayer(pois);
-
-    var lonLat = new OpenLayers.LonLat(long, lat).transform(
+  <script src="https://openlayers.org/api/OpenLayers.js"></script>
+  <script>
+    function envoyer(){
+      //Récupération des valeurs saisies par l'utilisateur
+      var rue = document.getElementById('rue').value;
+      var ville = document.getElementById('code').value;
+      
+      //API issu de https://adresse.data.gouv.fr/api-doc/adresse
+      //Création de l'objet Ajax
+      var req= new XMLHttpRequest();
+      
+      //Préparation de requette
+      req.open("GET","https://api-adresse.data.gouv.fr/search/?q="+rue+"&postcode="+ville,false); 
+      
+      //Envoi de l'information au serveur
+      req.send(null); 
+      
+      //Reception et affichage du résultat
+      var geocodeObjet = JSON.parse(req.responseText);
+      
+      //Filtre pour récuppérer uniquement les valeurs GPS de l'adresse
+      var long = geocodeObjet.features[0].geometry.coordinates[0];
+      var lat = geocodeObjet.features[0].geometry.coordinates[1];
+      
+      //Afficher la carte
+      var map = new OpenLayers.Map("mapdiv");
+      map.addLayer(new OpenLayers.Layer.OSM());
+      
+      var markers = new OpenLayers.Layer.Markers("Markers");
+      map.addLayer(markers);
+      
+      function addMarker(lonLat) {
+        markers.clearMarkers();
+        markers.addMarker(new OpenLayers.Marker(lonLat));
+      }
+      
+      //Centrer la carte sur les coordonnées géographiques
+      var lonLat = new OpenLayers.LonLat(long, lat).transform(
         new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
         map.getProjectionObject() // to Spherical Mercator Projection
-    );
-    var zoom = 12;
-    map.setCenter(lonLat, zoom);
-
-    //Affichage du résultat
-    document.getElementById('result').innerHTML="Long "+long+"</br>Lat "+lat;
-}    
-</script>
-
+      );
+      
+      var zoom = 12;
+      map.setCenter(lonLat, zoom);
+      addMarker(lonLat);
+      
+      //Afficher les POI à proximité de la position de l'utilisateur
+      var reqPOI = new XMLHttpRequest();
+      reqPOI.open("GET", "POIexo6.php?lat=" + lat + "&lon=" + long, false);
+      reqPOI.send(null);
+      var poiObjet = reqPOI.responseText;
+      markers.addMarker(new OpenLayers.Marker(lonLat));
+      markers.addMarker(new OpenLayers.Marker(lonLat, new OpenLayers.Icon(poiObjet)));
+    }
+  </script>
 </head>    
 <body>
-<p>Adresse <input id="rue"/></p>
-<p>Code postal <input id="code"/></p>
-<button onclick="envoyer()">Envoyer</button>
-<p id="result"></p>
-<div id="mapdiv"></div>
+  <p>Adresse <input id="rue"/></p>
+  <p>Code postal <input id="code"/></p>
+  <button onclick="envoyer()">Envoyer</button>
+  <div id="mapdiv" style="width:100%;height:400px;"></div>
 </body>
 </html>
