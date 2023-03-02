@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Ma carte</title>
+    <title>Ma cartes</title>
   </head>
   <body>
     <form action="lacarte.php" method="post">
