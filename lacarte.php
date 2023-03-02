@@ -6,7 +6,7 @@
     <div id="mapdiv"></div>
     <form>
       Latitude : <input type="text" name="lat" id="lat">
-      Longitude : <input type="text" name="lon" id="lon">
+      Longitude: <input type="text" name="lon" id="lon">
       <input type="button" value="Rechercher" onclick="updateMap()">
     </form>
     <script>
