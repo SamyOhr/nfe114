@@ -1,33 +1,61 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Ma carte</title>
-    <script src="https://openlayers.org/api/OpenLayers.js"></script>
-  </head>
-  <body>
-    <div id="mapdiv" style="width:100%; height:80%"></div>
+<head>
+    <title>Carte</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+</head>
+<body>
+    <h2>Carte</h2>
+    <div id="map" style="width:100%; height:500px;"></div>
+
     <script>
-      var map = new OpenLayers.Map("mapdiv");
-      map.addLayer(new OpenLayers.Layer.OSM());
+        // Création de la couche OpenStreetMap
+        var osmLayer = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
 
-      var pois = new OpenLayers.Layer.Text("My Points", {
-        location: "./POIexo6.php",
-        projection: map.displayProjection,
-      });
-      map.addLayer(pois);
+        // Création de la carte
+        var map = new ol.Map({
+            target: 'map',
+            layers: [osmLayer],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([5.36978, 43.296482]), // Centre sur votre POI initial
+                zoom: 15 // Zoom de la carte
+            })
+        });
 
-      // Set start centerpoint and zoom
-      var lonLat = new OpenLayers.LonLat(
-        5.36978,
-        43.296482
-      ).transform(
-        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-        map.getProjectionObject() // to Spherical Mercator Projection
-      );
-      var zoom = 12;
-      map.setCenter(lonLat, zoom);
+        // Fonction qui positionne le POI initial sur la carte
+        function positionnerPOI(lon, lat) {
+            var iconFeature = new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+                name: 'POI'
+            });
+
+            var iconStyle = new ol.style.Style({
+                image: new ol.style.Icon({
+                    anchor: [0.5, 46],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'pixels',
+                    src: 'Ol_icon_blue_example.png' // Chemin vers l'icône du POI initial
+                })
+            });
+
+            iconFeature.setStyle(iconStyle);
+
+            var vectorSource = new ol.source.Vector({
+                features: [iconFeature]
+            });
+
+            var vectorLayer = new ol.layer.Vector({
+                source: vectorSource
+            });
+
+            map.addLayer(vectorLayer);
+        }
+
     </script>
-  </body>
+</body>
 </html>
 
