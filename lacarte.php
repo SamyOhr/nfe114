@@ -28,6 +28,12 @@
         );
         var zoom = 12;
         map.setCenter(lonLat, zoom);
+
+        //Add a marker for the user's position
+        var userMarker = new OpenLayers.Marker(lonLat);
+        map.addLayer(new OpenLayers.Layer.Markers("User Position")).addMarker(
+          userMarker
+        );
       }
 
       //Set start centrepoint and zoom
