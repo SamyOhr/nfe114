@@ -1,11 +1,16 @@
 <?php
-  if(isset($_POST['lat']) && isset($_POST['lon'])) {
-    $lat = $_POST['lat'];
-    $lon = $_POST['lon'];
-  } else {
-    $lat = 43.296482;
-    $lon = 5.36978;
-  }
+  //Récupération des valeurs saisies par l'utilisateur
+  $rue = $_POST['rue'] ?? '';
+  $code = $_POST['code'] ?? '';
+  
+  //API issu de https://adresse.data.gouv.fr/api-doc/adresse
+  $url = 'https://api-adresse.data.gouv.fr/search/?q=' . urlencode($rue) . '&postcode=' . urlencode($code);
+  $json = file_get_contents($url);
+  $data = json_decode($json);
+  
+  //Récupération des coordonnées GPS de l'adresse
+  $lat = $data->features[0]->geometry->coordinates[1] ?? 43.296482;
+  $lon = $data->features[0]->geometry->coordinates[0] ?? 5.36978;
 ?>
 
 <html>
@@ -14,11 +19,6 @@
   </head>
   <body>
     <div id="mapdiv"></div>
-    <form method="post" action="">
-      Latitude : <input type="text" name="lat" id="lat" value="<?php echo $lat; ?>">
-      Longitude: <input type="text" name="lon" id="lon" value="<?php echo $lon; ?>">
-      <input type="submit" value="Afficher">
-    </form>
     <script>
       var map = new OpenLayers.Map("mapdiv");
       map.addLayer(new OpenLayers.Layer.OSM());
@@ -31,19 +31,7 @@
         markers.addMarker(new OpenLayers.Marker(lonLat));
       }
 
-      function updateMap() {
-        var lat = document.getElementById("lat").value;
-        var lon = document.getElementById("lon").value;
-        var lonLat = new OpenLayers.LonLat(lon, lat).transform(
-          new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-          map.getProjectionObject() // to Spherical Mercator Projection
-        );
-        var zoom = 12;
-        map.setCenter(lonLat, zoom);
-        addMarker(lonLat);
-      }
-
-      //Set start centrepoint and zoom
+      //Transforme les coordonnées GPS de l'utilisateur en Spherical Mercator Projection
       var lonLat = new OpenLayers.LonLat(<?php echo $lon; ?>, <?php echo $lat; ?>).transform(
         new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
         map.getProjectionObject() // to Spherical Mercator Projection
@@ -54,4 +42,3 @@
     </script>
   </body>
 </html>
-
