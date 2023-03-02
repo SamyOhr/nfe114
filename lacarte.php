@@ -4,10 +4,10 @@
   </head>
   <body>
     <div id="mapdiv"></div>
-    <form>
+    <form method="post" action="lacarte.php">
       Latitude : <input type="text" name="lat" id="lat">
       Longitude: <input type="text" name="lon" id="lon">
-      <input type="button" value="Rechercher" onclick="updateMap()">
+      <input type="submit" value="Afficher">
     </form>
     <script>
       var map = new OpenLayers.Map("mapdiv");
@@ -19,30 +19,27 @@
       });
       map.addLayer(pois);
 
-      function updateMap() {
-        var lat = document.getElementById("lat").value;
-        var lon = document.getElementById("lon").value;
-        var lonLat = new OpenLayers.LonLat(lon, lat).transform(
-          new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-          map.getProjectionObject() // to Spherical Mercator Projection
-        );
-        var zoom = 12;
-        map.setCenter(lonLat, zoom);
-
-        //Add a marker for the user's position
-        var userMarker = new OpenLayers.Marker(lonLat);
-        map.addLayer(new OpenLayers.Layer.Markers("User Position")).addMarker(
-          userMarker
-        );
+      <?php
+      if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $lat = $_POST['lat'];
+        $lon = $_POST['lon'];
+        echo "var lonLat = new OpenLayers.LonLat($lon, $lat).transform(
+              new OpenLayers.Projection('EPSG:4326'), // transform from WGS 1984
+              map.getProjectionObject() // to Spherical Mercator Projection
+            );
+            var zoom = 12;
+            map.setCenter(lonLat, zoom);";
+      } else {
+        echo "//Set start centrepoint and zoom
+            var lonLat = new OpenLayers.LonLat(5.36978, 43.296482).transform(
+              new OpenLayers.Projection('EPSG:4326'), // transform from WGS 1984
+              map.getProjectionObject() // to Spherical Mercator Projection
+            );
+            var zoom = 12;
+            map.setCenter(lonLat, zoom);";
       }
-
-      //Set start centrepoint and zoom
-      var lonLat = new OpenLayers.LonLat(5.36978, 43.296482).transform(
-        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-        map.getProjectionObject() // to Spherical Mercator Projection
-      );
-      var zoom = 12;
-      map.setCenter(lonLat, zoom);
+      ?>
     </script>
   </body>
 </html>
+
