@@ -1,9 +1,9 @@
 <?php
 
 //C'est le POI de l'utilisateur
-//echo "lat\tlon\ttitle\tdescription\ticon\ticonSize\ticonOffset\n";
-//echo "43.296482\t5.36978\tMoi\tMa Position\tpngegg.png\t24,24\t0,-24\n";
-//echo "48.842053\t2.355763\tMusée d'Histoire Naturelle de Paris\tAdresse du Musée\tOl_icon_red_example.png\t24,24\t0,-24\n";
+echo "lat\tlon\ttitle\tdescription\ticon\ticonSize\ticonOffset\n";
+echo "43.296482\t5.36978\tMoi\tMa Position\tpngegg.png\t24,24\t0,-24\n";
+echo "48.842053\t2.355763\tMusée d'Histoire Naturelle de Paris\tAdresse du Musée\tOl_icon_red_example.png\t24,24\t0,-24\n";
 
 
 //1° - Connexion à la BDD
