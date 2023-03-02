@@ -1,44 +1,62 @@
-<?php
-  //Récupération des valeurs saisies par l'utilisateur
-  $rue = $_POST['rue'] ?? '';
-  $code = $_POST['code'] ?? '';
-  
-  //API issu de https://adresse.data.gouv.fr/api-doc/adresse
-  $url = 'https://api-adresse.data.gouv.fr/search/?q=' . urlencode($rue) . '&postcode=' . urlencode($code);
-  $json = file_get_contents($url);
-  $data = json_decode($json);
-  
-  //Récupération des coordonnées GPS de l'adresse
-  $lat = $data->features[0]->geometry->coordinates[1] ?? 43.296482;
-  $lon = $data->features[0]->geometry->coordinates[0] ?? 5.36978;
-?>
-
 <html>
-  <head>
-    <script src="https://openlayers.org/api/OpenLayers.js"></script>
-  </head>
   <body>
     <div id="mapdiv"></div>
+    <script src="https://openlayers.org/api/OpenLayers.js"></script>
     <script>
-      var map = new OpenLayers.Map("mapdiv");
-      map.addLayer(new OpenLayers.Layer.OSM());
+      var map, pois;
 
-      var markers = new OpenLayers.Layer.Markers( "Markers" );
-      map.addLayer(markers);
+      function initMap() {
+        map = new OpenLayers.Map("mapdiv");
+        map.addLayer(new OpenLayers.Layer.OSM());
 
-      function addMarker(lonLat) {
-        markers.clearMarkers();
-        markers.addMarker(new OpenLayers.Marker(lonLat));
+        pois = new OpenLayers.Layer.Text("My Points", {
+          location: "./POIexo6.php",
+          projection: map.displayProjection,
+        });
+        map.addLayer(pois);
+
+        var lonLat = new OpenLayers.LonLat(0, 0).transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          map.getProjectionObject()
+        );
+        var zoom = 2;
+        map.setCenter(lonLat, zoom);
       }
 
-      //Transforme les coordonnées GPS de l'utilisateur en Spherical Mercator Projection
-      var lonLat = new OpenLayers.LonLat(<?php echo $lon; ?>, <?php echo $lat; ?>).transform(
-        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-        map.getProjectionObject() // to Spherical Mercator Projection
-      );
-      var zoom = 12;
-      map.setCenter(lonLat, zoom);
-      addMarker(lonLat);
+      function updatePOI() {
+        var rue = document.getElementById("rue").value;
+        var ville = document.getElementById("code").value;
+
+        var req = new XMLHttpRequest();
+        req.open(
+          "GET",
+          "https://api-adresse.data.gouv.fr/search/?q=" + rue + "&postcode=" + ville,
+          false
+        );
+        req.send(null);
+
+        var geocodeObjet = JSON.parse(req.responseText);
+        var long = geocodeObjet.features[0].geometry.coordinates[0];
+        var lat = geocodeObjet.features[0].geometry.coordinates[1];
+
+        var poi = pois.features[0];
+        poi.geometry.x = long;
+        poi.geometry.y = lat;
+        poi.layer.drawFeature(poi);
+        map.setCenter(new OpenLayers.LonLat(long, lat).transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          map.getProjectionObject()
+        ));
+      }
+    </script>
+
+    <p>Adresse <input id="rue" /></p>
+    <p>Code postal <input id="code" /></p>
+    <button onclick="updatePOI()">Mettre à jour</button>
+
+    <script>
+      initMap();
     </script>
   </body>
 </html>
+

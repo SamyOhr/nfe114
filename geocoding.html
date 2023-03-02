@@ -3,77 +3,53 @@
 <script src="https://openlayers.org/api/OpenLayers.js"></script>
 <script>
 function envoyer(){
-    //Récupération des valeurs saisies pas l'utilisateur
-    var rue = document.getElementById('rue').value;
+    //Récupération des valeurs saisies par l'utilisateur
+	var rue = document.getElementById('rue').value;
     var ville = document.getElementById('code').value;
-
-    //API issu de https://adresse.data.gouv.fr/api-doc/adresse
-
-    //Création de l'object Ajax
-    var req= new XMLHttpRequest();
+    
+	//API issu de https://adresse.data.gouv.fr/api-doc/adresse
+	
+	//Création de l'object Ajax
+	var req= new XMLHttpRequest();
     //Préparation de requête
-    req.open("GET","https://api-adresse.data.gouv.fr/search/?q="+rue+"&postcode="+ville,false);
+	req.open("GET","https://api-adresse.data.gouv.fr/search/?q="+rue+"&postcode="+ville,false); 
     //Envoi de l'information au serveur
-    req.send(null);
-    //Reception et affichage du résultat
-    var geocodeObjet = JSON.parse(req.responseText);
-
-    //Filtre pour récupérer uniquement les valeurs GPS de l'adresse
+	req.send(null); 
+    //Réception et affichage du résultat
+	var geocodeObjet = JSON.parse(req.responseText);
+    
+    //Récupération des coordonnées GPS de l'adresse
     var long = geocodeObjet.features[0].geometry.coordinates[0];
     var lat = geocodeObjet.features[0].geometry.coordinates[1];
 
-    // Mettre à jour les coordonnées dans le formulaire
-    document.getElementById('lat').value = lat;
-    document.getElementById('lon').value = long;
+    //Initialisation de la carte et du POI de départ
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
 
-    // Mettre à jour la carte
-    updateMap();
-}
+    var pois = new OpenLayers.Layer.Text("My Points", {
+        location: "./POIexo6.php",
+        projection: map.displayProjection,
+    });
+    map.addLayer(pois);
 
-var map = new OpenLayers.Map("mapdiv");
-map.addLayer(new OpenLayers.Layer.OSM());
-
-var markers = new OpenLayers.Layer.Markers( "Markers" );
-map.addLayer(markers);
-
-function addMarker(lonLat) {
-    markers.clearMarkers();
-    markers.addMarker(new OpenLayers.Marker(lonLat));
-}
-
-function updateMap() {
-    var lat = document.getElementById("lat").value;
-    var lon = document.getElementById("lon").value;
-    var lonLat = new OpenLayers.LonLat(lon, lat).transform(
+    var lonLat = new OpenLayers.LonLat(long, lat).transform(
         new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
         map.getProjectionObject() // to Spherical Mercator Projection
     );
     var zoom = 12;
     map.setCenter(lonLat, zoom);
-    addMarker(lonLat);
-}
 
+    //Affichage du résultat
+    document.getElementById('result').innerHTML="Long "+long+"</br>Lat "+lat;
+}    
 </script>
-</head>
+
+</head>    
 <body>
-<div id="mapdiv"></div>
 <p>Adresse <input id="rue"/></p>
 <p>Code postal <input id="code"/></p>
 <button onclick="envoyer()">Envoyer</button>
-<form method="post" action="">
-    Latitude : <input type="text" name="lat" id="lat" value="43.296482">
-    Longitude: <input type="text" name="lon" id="lon" value="5.36978">
-    <input type="submit" value="Afficher">
-</form>
-<script>
-    //Set start centrepoint and zoom
-    var lonLat = new OpenLayers.LonLat(5.36978, 43.296482).transform(
-        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-        map.getProjectionObject() // to Spherical Mercator Projection
-    );
-    var zoom = 12;
-    map.setCenter(lonLat, zoom);
-    addMarker(lonLat);
-</script>
+<p id="result"></p>
+<div id="mapdiv"></div>
 </body>
 </html>

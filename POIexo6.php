@@ -1,64 +1,26 @@
 <?php
-  if(isset($_POST['rue']) && isset($_POST['code'])) {
-    $rue = $_POST['rue'];
-    $code = $_POST['code'];
 
-    // appel à l'API de géocodage pour récupérer les coordonnées de l'adresse saisie
-    $url = "https://api-adresse.data.gouv.fr/search/?q=".urlencode($rue)."&postcode=".urlencode($code);
-    $json = file_get_contents($url);
-    $data = json_decode($json, true);
-    $lat = $data['features'][0]['geometry']['coordinates'][1];
-    $lon = $data['features'][0]['geometry']['coordinates'][0];
-  } else {
-    $lat = 43.296482;
-    $lon = 5.36978;
-  }
+// 1° - Connexion à la BDD
+$base = new PDO('mysql:host=localhost; dbname=id20205701_samy', 'id20205701_samyouicher', '/&*hX18M$A}2#QGr');
+$base->exec("SET CHARACTER SET utf8");
+
+// 2° - Préparation de la requête et exécution pour récupérer les équipements proches de la position de l'utilisateur
+$retour = $base->query('SELECT *, get_distance_metres(\''.$_GET['lat'].'\', \''.$_GET['lon'].'\', equi_lat, equi_long) 
+AS proximite 
+FROM equipement 
+HAVING proximite < 1000 ORDER BY proximite ASC
+LIMIT 10;
+');
+
+// Définition des colonnes pour les points d'intérêts (POI)
+echo "lat\tlon\ttitle\tdescription\ticon\ticonSize\ticonOffset\n";
+
+// Récupération des données pour le POI de l'utilisateur
+echo $_GET['lat']."\t".$_GET['lon']."\tMoi\tMa Position\tOl_icon_blue_example.png\t24,24\t0,-24\n";
+
+// Boucle pour afficher les équipements proches
+while ($data = $retour->fetch()){
+    echo $data['equi_lat']."\t".$data['equi_long']."\t".$data['equi_nom']."\t".$data['equi_ad1']."\tOl_icon_red_example.png\t24,24\t0,-24\n";
+}
+
 ?>
-
-<html>
-  <head>
-    <script src="https://openlayers.org/api/OpenLayers.js"></script>
-  </head>
-  <body>
-    <div id="mapdiv"></div>
-    <form method="post" action="">
-      Adresse : <input type="text" name="rue" id="rue">
-      Code postal: <input type="text" name="code" id="code">
-      <input type="submit" value="Afficher">
-    </form>
-    <script>
-      var map = new OpenLayers.Map("mapdiv");
-      map.addLayer(new OpenLayers.Layer.OSM());
-
-      var markers = new OpenLayers.Layer.Markers( "Markers" );
-      map.addLayer(markers);
-
-      function addMarker(lonLat) {
-        markers.clearMarkers();
-        markers.addMarker(new OpenLayers.Marker(lonLat));
-      }
-
-      function updateMap() {
-        var lat = <?php echo $lat; ?>;
-        var lon = <?php echo $lon; ?>;
-        var lonLat = new OpenLayers.LonLat(lon, lat).transform(
-          new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-          map.getProjectionObject() // to Spherical Mercator Projection
-        );
-        var zoom = 12;
-        map.setCenter(lonLat, zoom);
-        addMarker(lonLat);
-      }
-
-      //Set start centrepoint and zoom
-      var lonLat = new OpenLayers.LonLat(<?php echo $lon; ?>, <?php echo $lat; ?>).transform(
-        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-        map.getProjectionObject() // to Spherical Mercator Projection
-      );
-      var zoom = 12;
-      map.setCenter(lonLat, zoom);
-      addMarker(lonLat);
-    </script>
-  </body>
-</html>
-
